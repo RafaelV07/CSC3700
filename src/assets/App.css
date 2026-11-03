@@ -1,0 +1,56 @@
+body {
+  background-color: #f5f6f8;
+}
+
+.course-card {
+  border-width: 2px;
+}
+
+.course-card .card-header,
+.course-card .card-footer {
+  background-color: transparent;
+}
+
+.course-available {
+  border-color: var(--bs-primary);
+}
+
+.course-available .card-header {
+  background-color: #f8f9fa;
+}
+
+.course-completed {
+  border-color: var(--bs-success);
+  background-color: #edf7f0;
+}
+
+.course-completed .card-header {
+  background-color: #e2efe6;
+}
+
+.course-locked {
+  border-color: #9a9fa5;
+  background-color: #f1f2f3;
+}
+
+.course-locked .card-header {
+  background-color: #e9eaeb;
+}
+
+.course-locked .card-header .fw-bold,
+.course-locked .card-body {
+  color: #5c636a;
+}
+
+.progress {
+  height: 16px;
+}
+
+.about-card {
+  max-width: 575px;
+}
+
+.page-container {
+  padding-left: 2.1rem;
+  padding-right: 2.1rem;
+}
