@@ -1,31 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useFetch from '../hooks/useFetch'
 import CourseList from '../components/CourseList'
 import ProgressSummary from '../components/ProgressSummary'
 
-const STORAGE_KEY = 'completedCourses'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 const isAvailable = (course, completed) => {
   return course.prerequisites.every((prereqId) => completed.includes(prereqId))
 }
 
-const loadCompleted = () => {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    return Array.isArray(saved) ? saved : []
-  } catch {
-    return []
-  }
-}
-
 const HomePage = () => {
-  const { data: courses, isPending, error } = useFetch(
-    `${import.meta.env.VITE_API_BASE_URL}/courses`
-  )
+  const { data: courses, isPending, error } = useFetch(`${BASE_URL}/api/courses`)
+  const { data: savedCompletions } = useFetch(`${BASE_URL}/api/completions`)
 
-  const [completed, setCompleted] = useState(loadCompleted)
+  const [completed, setCompleted] = useState([])
+
+  useEffect(() => {
+    if (Array.isArray(savedCompletions)) setCompleted(savedCompletions)
+  }, [savedCompletions])
   const [filter, setFilter] = useState('all')
-  const [saveMessage, setSaveMessage] = useState('')
+  const [saveMessage, setSaveMessage] = useState(null)
 
   const getStatus = (course) => {
     if (completed.includes(course.id)) return 'Completed'
@@ -49,12 +43,30 @@ const HomePage = () => {
       if (!isAvailable(course, completed)) return
       setCompleted([...completed, courseId])
     }
-    setSaveMessage('')
+    setSaveMessage(null)
   }
 
   const handleSave = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(completed))
-    setSaveMessage('Progress saved.')
+    fetch(`${BASE_URL}/api/completions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(completed),
+    })
+      .then((res) =>
+        res.json().then((body) => {
+          if (!res.ok) {
+            throw Error(body.error || `Save failed (status ${res.status})`)
+          }
+          return body
+        })
+      )
+      .then((saved) => {
+        setCompleted(saved)
+        setSaveMessage({ type: 'success', text: 'Progress saved.' })
+      })
+      .catch((err) => {
+        setSaveMessage({ type: 'error', text: err.message })
+      })
   }
 
   const allCourses = courses || []
@@ -91,7 +103,7 @@ const HomePage = () => {
 
       {error && (
         <div className="alert alert-danger" role="alert">
-          <strong>Error:</strong> {error}. Make sure JSON Server is running on port 3333.
+          <strong>Error:</strong> {error}. Make sure the Express server is running on port 3000.
         </div>
       )}
 
@@ -118,7 +130,13 @@ const HomePage = () => {
               ))}
             </div>
             <div className="d-flex align-items-center gap-3">
-              {saveMessage && <span className="small text-success">{saveMessage}</span>}
+              {saveMessage && (
+                <span
+                  className={`small ${saveMessage.type === 'success' ? 'text-success' : 'text-danger'}`}
+                >
+                  {saveMessage.text}
+                </span>
+              )}
               <button type="button" className="btn btn-success" onClick={handleSave}>
                 Save
               </button>

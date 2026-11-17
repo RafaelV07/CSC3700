@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 const AUTHORS = 'Rafael V'
-const APP_VERSION = '1.0.0'
+const APP_VERSION = '2.0.0'
 
 const formatToday = () =>
   new Date().toLocaleDateString('en-US', {

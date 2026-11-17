@@ -1,0 +1,78 @@
+@baseUrl = http://localhost:3000/api
+
+### GET all courses (each with a prerequisites array)
+GET {{baseUrl}}/courses
+
+### GET one course (CSC4990 has two prerequisites: [6, 7])
+GET {{baseUrl}}/courses/10
+
+### ERROR 404: GET a course that does not exist
+GET {{baseUrl}}/courses/999
+
+### POST a new course: CSC4600 requires CSC3250 (5) and CSC4500 (9) -> 201
+POST {{baseUrl}}/courses
+Content-Type: application/json
+
+{ "number": "CSC4600", "title": "Cloud Computing", "credits": 3,
+  "description": "Test course", "prerequisites": [5, 9] }
+
+### ERROR 400: POST a course with title and credits missing
+POST {{baseUrl}}/courses
+Content-Type: application/json
+
+{ "number": "CSC4700", "description": "Missing title and credits", "prerequisites": [] }
+
+### PUT: change CSC3700 (7) to require CSC2200 (3) and CSC3250 (5) -> 200
+PUT {{baseUrl}}/courses/7
+Content-Type: application/json
+
+{ "number": "CSC3700", "title": "Advanced Web Application Development", "credits": 3,
+  "description": "React, Node/Express, MySQL, JWT authentication.", "prerequisites": [3, 5] }
+
+### ERROR 400: PUT a course with credits missing
+PUT {{baseUrl}}/courses/7
+Content-Type: application/json
+
+{ "number": "CSC3700", "title": "Advanced Web Application Development", "prerequisites": [3] }
+
+### ERROR 404: PUT a course that does not exist
+PUT {{baseUrl}}/courses/999
+Content-Type: application/json
+
+{ "number": "CSC9999", "title": "Does Not Exist", "credits": 3, "prerequisites": [] }
+
+### DELETE the course created above (CSC4600 gets id 11 after a fresh seed) -> 200 + deleted course
+DELETE {{baseUrl}}/courses/11
+
+### ERROR 404: DELETE a course that does not exist
+DELETE {{baseUrl}}/courses/999
+
+### GET completions -> [1, 3] after a fresh seed
+GET {{baseUrl}}/completions
+
+### PUT a valid completion list -> 200 [1, 2, 3]
+PUT {{baseUrl}}/completions
+Content-Type: application/json
+
+[1, 3, 2]
+
+### ERROR 400: PUT a list that breaks a prerequisite (CSC4990 without CSC3510 and CSC3700) -> nothing saved
+PUT {{baseUrl}}/completions
+Content-Type: application/json
+
+[1, 10]
+
+### Confirm nothing was saved by the bad PUT -> still [1, 2, 3]
+GET {{baseUrl}}/completions
+
+### PUT an empty list (nothing completed) -> 200 []
+PUT {{baseUrl}}/completions
+Content-Type: application/json
+
+[]
+
+### Put the seed data back -> 200 [1, 3]
+PUT {{baseUrl}}/completions
+Content-Type: application/json
+
+[1, 3]
